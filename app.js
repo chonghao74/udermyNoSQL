@@ -37,10 +37,37 @@ const studentSchema = new Schema({
     }
 });
 
+//define schema instance methoed
+studentSchema.methods.calBmi = function () {
+    console.log(this);
+    console.log(this.basic.w);
+    console.log(this.basic.h);
+    const bmi = ((this.basic.w) / (Math.pow((this.basic.h / 100), 2))).toFixed(2);
+    return bmi;
+}
+
+studentSchema.methods.changeAge = function () {
+    let calAge = this.age;
+    if (calAge >= 100) {
+        this.age = calAge - 100;
+    }
+    else {
+        this.age++;
+    }
+
+    this.save();
+}
+
+//define a static Method
+studentSchema.statics.testStatic = function () {
+    return this.updateMany({ __v: 1 }, { __v: 0 });
+}
+
+
 //create a Model for Student
 const Student = mongoose.model("Student", studentSchema);
 //insert data
-//e.g.1
+//e.g.1 by query
 // const newStudent = new Student({
 //     name: "Error",
 //     age: 49,
@@ -59,7 +86,6 @@ const Student = mongoose.model("Student", studentSchema);
 //     });
 
 //e.g.2
-
 // const Person = mongoose.model("Person", studentSchema);
 // const newPerson = new Person({
 //     name: "Hb",
@@ -93,6 +119,7 @@ async function findPerson() {
     // })
 
 }
+
 
 
 app.get("/home", (req, res) => {
@@ -132,6 +159,25 @@ app.get("/home", (req, res) => {
     //         console.log(e);
     //     });
 
+    //利用 find/findOne + Schema instance Method + document.save() 更新資料 
+    // students.find({ age: { $gte: 0 } }).then(data => {
+    //     data.forEach(o => {
+    //         o.changeAge()
+    //     });
+    //     console.log(data);
+    // })
+    //     .catch(e => {
+    //         console.log(e);
+    //     });
+
+    //利用 Schema static + Model updateMany 更新資料
+    students.testStatic().then(data => {
+        console.log(data);
+    })
+        .catch(e => {
+            console.log(e);
+        });
+
     //Read
     // students.findOne({ age: { $eq: 13 } })
     //     .then(data => {
@@ -147,6 +193,16 @@ app.get("/home", (req, res) => {
     //     console.log(e);
     // });
 
+    //use schema instance method
+    // students.find({ age: { $gte: 10 } }).then(data => {
+    //     data.forEach(o => {
+    //         console.log(o.calBmi());
+    //     })
+    // })
+    //     .catch(e => {
+    //         console.log(e);
+    //     })
+
     //Delete
     // students.deleteOne({ age: { $eq: 50 } }).then(data => {
     //     console.log(data);
@@ -160,11 +216,11 @@ app.get("/home", (req, res) => {
     //     console.log(e);
     // });
 
-    students.deleteMany({ age: { $gte: 50 }, name: 'Error' }).then(data => {
-        console.log(data);
-    }).catch(e => {
-        console.log(e);
-    });
+    // students.deleteMany({ age: { $gte: 50 }, name: 'Error' }).then(data => {
+    //     console.log(data);
+    // }).catch(e => {
+    //     console.log(e);
+    // });
 
     res.status(200).render("home");
 });
