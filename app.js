@@ -1,5 +1,6 @@
 const express = require("express");//use express
 const mongoose = require('mongoose');//use mongoose
+const fs = require('fs');
 const app = express();
 const { Schema } = mongoose;//make schema
 
@@ -63,27 +64,65 @@ studentSchema.statics.testStatic = function () {
     return this.updateMany({ __v: 1 }, { __v: 0 });
 }
 
+//define middleware
+studentSchema.pre("save", async function () {
+    const date = getLogTime();
+    // fs.access('/log/logRecord.txt', constants.F_OK, (err) => {
+    //     console.log(`${file} ${err ? 'does not exist' : 'exists'}`);
+    // });
+
+
+    fs.appendFile("./log/logRecord.txt", `Start Succes - ${date}`, e => {
+        if (e) {
+            fs.writeFile("./log/logRecord.txt", `Start Succes - ${date}`, e => {
+                if (e) {
+                    console.log("PRE-" + e)
+                }
+            });
+        }
+    });
+});
+
+studentSchema.post("save", async function () {
+    const date = getLogTime();
+
+    fs.appendFile("./log/logRecord.txt", `End Succes - ${date}`, e => {
+        if (e) {
+            fs.writeFile("./log/logRecord.txt", `End Succes - ${date}`, e => {
+                if (e) { console.log("POST-" + e) }
+            });
+        }
+    });
+});
 
 //create a Model for Student
 const Student = mongoose.model("Student", studentSchema);
 //insert data
 //e.g.1 by query
-// const newStudent = new Student({
-//     name: "Error",
-//     age: 49,
-//     major: "Bussiness",
-//     classtimetable: ["A", "B", "C", "D", "E"],
-//     basic: { h: 300, w: 65, g: "M" }
-// });
+const newStudent = new Student({
+    name: "Error08091101",
+    age: 11,
+    major: "Bussiness",
+    classtimetable: ["A", "B", "C", "D", "E"],
+    basic: { h: 300, w: 65, g: "M" }
+});
 
-// newStudent.save()
-//     .then(data => {
-//         console.log("Success Insert DB");
-//         console.log(data)
-//     })
-//     .catch(e => {
-//         console.log(e);
-//     });
+newStudent.save()
+    .then(data => {
+        console.log("Success Insert DB");
+        console.log(data)
+    })
+    .catch(e => {
+        console.log("Save-" + e);
+        const date = getLogTime();
+        fs.appendFile("./log/logRecord.txt", `Fail Succes - ${date}`, e => {
+            if (e) {
+                fs.writeFile("./log/logRecord.txt", `Fail Succes - ${date}`, e => {
+                    if (e) { console.log("POST-" + e) }
+                });
+            }
+        });
+    });
 
 //e.g.2
 // const Person = mongoose.model("Person", studentSchema);
@@ -171,12 +210,12 @@ app.get("/home", (req, res) => {
     //     });
 
     //利用 Schema static + Model updateMany 更新資料
-    students.testStatic().then(data => {
-        console.log(data);
-    })
-        .catch(e => {
-            console.log(e);
-        });
+    // students.testStatic().then(data => {
+    //     console.log(data);
+    // })
+    //     .catch(e => {
+    //         console.log(e);
+    //     });
 
     //Read
     // students.findOne({ age: { $eq: 13 } })
@@ -227,8 +266,13 @@ app.get("/home", (req, res) => {
 
 app.get("*", (req, res) => {
     res.send("Error");
+
 });
 
+function getLogTime() {
+    let datetest = new Date();
+    return `${datetest.getFullYear()}-${datetest.getMonth() + 1}-${datetest.getDate()} ${datetest.getHours()}-${datetest.getMinutes()}-${datetest.getSeconds()}\n`
+}
 
 app.listen(3000, () => {
     console.log("listtening port 3000");
