@@ -99,30 +99,40 @@ studentSchema.post("save", async function () {
 const Student = mongoose.model("Student", studentSchema);
 //insert data
 //e.g.1 by query
-const newStudent = new Student({
-    name: "Error08091101",
-    age: 11,
-    major: "Bussiness",
-    classtimetable: ["A", "B", "C", "D", "E"],
-    basic: { h: 300, w: 65, g: "M" }
-});
+//Valitators Success Case
+// const newStudent = new Student({
+//     name: "Error08091101",
+//     age: 2,
+//     major: "Bussiness",
+//     classtimetable: ["A", "B", "C", "D", "E"],
+//     basic: { h: 300, w: 65, g: "M" }
+// });
 
-newStudent.save()
-    .then(data => {
-        console.log("Success Insert DB");
-        console.log(data)
-    })
-    .catch(e => {
-        console.log("Save-" + e);
-        const date = getLogTime();
-        fs.appendFile("./log/logRecord.txt", `Fail Succes - ${date}`, e => {
-            if (e) {
-                fs.writeFile("./log/logRecord.txt", `Fail Succes - ${date}`, e => {
-                    if (e) { console.log("POST-" + e) }
-                });
-            }
-        });
-    });
+//Valitators Fail Case
+// const newStudent = new Student({
+//     name: "Error08091101",
+//     age: 11,
+//     major: "Bussiness",
+//     classtimetable: ["A", "B", "C", "D", "E"],
+//     basic: { h: 300, w: 65, g: "M" }
+// });
+
+// newStudent.save()
+//     .then(data => {
+//         console.log("Success Insert DB");
+//         console.log(data)
+//     })
+//     .catch(e => {
+//         console.log("Save-" + e);
+//         const date = getLogTime();
+//         fs.appendFile("./log/logRecord.txt", `Fail Succes - ${date}`, e => {
+//             if (e) {
+//                 fs.writeFile("./log/logRecord.txt", `Fail Succes - ${date}`, e => {
+//                     if (e) { console.log("POST-" + e) }
+//                 });
+//             }
+//         });
+//     });
 
 //e.g.2
 // const Person = mongoose.model("Person", studentSchema);
@@ -163,6 +173,31 @@ async function findPerson() {
 
 app.get("/home", (req, res) => {
     const students = mongoose.model("students", studentSchema);
+    fs.open("./log/logRecord.txt", 'r+', (e, fd) => {
+        if (e) throw e;
+        console.log('檔案開啟成功!');
+        //let buffr = new Buffer(1024);//deprecated
+        let buffr = Buffer.alloc(1024);
+
+        fs.read(fd, buffr, 0, buffr.length, 0, function (err, bytes) {
+
+            if (err) throw err;
+
+            // Print only read bytes to avoid junk.
+            if (bytes > 0) {
+                console.log(bytes + " 字元被讀取");
+                console.log(buffr.slice(0, bytes).toString());//buffr.slice deprecated
+                console.log(buffr.subarray(0, bytes).toString());
+            }
+
+            // Close the opened file.
+            fs.close(fd, function (err) {
+                if (err) throw err;
+            });
+        });
+    })
+
+
     //const students = mongoose.model("student", { name: String, age: Number });
 
     //Update
